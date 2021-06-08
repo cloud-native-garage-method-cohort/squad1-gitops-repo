@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres-database
+spec:
+  selector:
+    matchLabels:
+      app: postgres-database
+  serviceName: postgres-service
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: postgres-database
+    spec:
+      containers:
+        - name: postgres-database
+          image: postgres
+          volumeMounts:
+            - name: postgres-disk
+              mountPath: /var/lib/postgresql/data
+          env:
+            - name: POSTGRES_DB
+              value: apac-bc-sqad1
+            - name: POSTGRES_USER
+              value: squad1          
+            - name: POSTGRES_PASSWORD
+              value: squad1@pwd421
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+  volumeClaimTemplates:
+    - metadata:
+        name: postgres-disk
+        annotations:
+          volume.beta.kubernetes.io/storage-provisioner: ibm.io/ibmc-block
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi
+            
