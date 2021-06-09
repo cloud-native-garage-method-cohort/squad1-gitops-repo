@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    enzo: "true"
+  labels:
+    app: squad1-api
+    app.kubernetes.io/instance: apac-bc-squad-1
+    app.kubernetes.io/name: squad1-api
+  name: squad1-api-svc
+  namespace: apac-bc-squad-1
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 3000
+  selector:
+    app.kubernetes.io/instance: apac-bc-squad-1
+    app.kubernetes.io/name: squad1-api
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.openshift.io/vcs-uri: https://github.com/cloud-native-garage-method-cohort/squad1-api-repo
+    enzo: "true"
+  labels:
+    app: squad1-api
+    app.kubernetes.io/instance: apac-bc-squad-1
+    app.kubernetes.io/name: squad1-api
+    app.openshift.io/runtime: js
+  name: squad1-api-deployment
+  namespace: apac-bc-squad-1
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: apac-bc-squad-1
+      app.kubernetes.io/name: squad1-api
+  template:
+    metadata:
+      annotations:
+        enzo: "true"
+      creationTimestamp: null
+      labels:
+        app.kubernetes.io/instance: apac-bc-squad-1
+        app.kubernetes.io/name: squad1-api
+    spec:
+      containers:
+      - env:
+        - name: INGRESS_HOST
+        - name: PROTOCOLS
+        - name: LOG_LEVEL
+          value: debug
+        image: quay.io/poornimata/squad1-api:b9c014d8baab25bc6a4016dfee1bd515d74e1ec8
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: 3000
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: squad1-api
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /
+            port: http
+            scheme: HTTP
+          periodSeconds: 10
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      serviceAccountName: build-bot
+      terminationGracePeriodSeconds: 30
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    argocd.argoproj.io/sync-options: Validate=false
+    enzo: "true"
+    openshift.io/host.generated: "true"
+  name: squad1-api-route
+  namespace: apac-bc-squad-1
+spec:
+  tls:
+    termination: edge
+  to:
+    kind: Service
+    name: squad1-api-svc
+    weight: 100
+  wildcardPolicy: None
