@@ -57,7 +57,7 @@ spec:
         - name: PROTOCOLS
         - name: LOG_LEVEL
           value: debug
-        image: quay.io/poornimata/squad1-app:abb17367144a9b6f8675acdea226dbc8b9815ee5
+        image: quay.io/poornimata/squad1-app:0477cc04b0cef152ee0970eebed03c158aa63840
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3
